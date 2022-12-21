@@ -17,10 +17,12 @@ $router->get('/', function () use ($router) {
     return response()->json($router->app->version());
 });
 
-$router->get('/path', function () use ($router) {
+$router->get('path', function () use ($router) {
     return response()->json($router->app->path());
 });
 
-$router->get('/fcr', function () use ($router) {
-    return($router->app->filesCreated());
+$router->get('fcr', function () use ($router) {
+    // $pathSearch = $path;
+    // $pathSearch = request()->segments(3);
+    return ($router->app->filesCreated());
 });

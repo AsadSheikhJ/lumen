@@ -1,1 +1,23 @@
-SQLSTATE[42S22]: Column not found: 1054 Unknown column 'tesst1' in 'field list' (SQL: update `test_api` set `tesst1` = testt where `studyID` = 323f543432)SQLSTATE[42S22]: Column not found: 1054 Unknown column 'tests12' in 'field list' (SQL: update `test_api` set `tests12` = testt23 where `studyID` = 323f543432)
+SQLSTATE[42S22]: Column not found: 1054 Unknown column 'tesst1' in 'field list' (SQL: update `test_api` set `tesst1` = testt where `studyID` = 323f543432)SQLSTATE[42S22]: Column not found: 1054 Unknown column 'tests12' in 'field list' (SQL: update `test_api` set `tests12` = testt23 where `studyID` = 323f543432)HTTP/1.0 200 OK
+Cache-Control: no-cache, private
+Content-Type:  application/json
+Date:          Mon, 26 Dec 2022 12:42:57 GMT
+
+"SQLSTATE[42S22]: Column not found: 1054 Unknown column 'timestamp' in 'field list' (SQL: insert into `test_api` (`syncdate`, `synctime`, `user`, `timestamp`, `studyID`) values (2022-12-26, 17:42:57, abcuser, 2022-12-26 12:41:28, 323f1542334346325))"
+
+HTTP/1.0 200 OK
+Cache-Control: no-cache, private
+Content-Type:  application/json
+Date:          Mon, 26 Dec 2022 12:42:58 GMT
+
+"Method Illuminate\\Database\\MySqlConnection::error does not exist."
+
+December 26, 2022, 5:42 pm | Updated | 323f1542334346325 | Data:te3232stt
+HTTP/1.0 200 OK
+Cache-Control: no-cache, private
+Content-Type:  application/json
+Date:          Mon, 26 Dec 2022 12:42:58 GMT
+
+"Method Illuminate\\Database\\MySqlConnection::error does not exist."
+
+December 26, 2022, 5:42 pm | Updated | 323f1542334346325 | Data:te413s2tt23

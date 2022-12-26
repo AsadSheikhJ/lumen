@@ -4,77 +4,65 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-class DeviceApi_model extends Model 
+
+class DeviceApi_model extends Model
 {
-    
-    // public function __construct()
-    // {
-    //     parent::__construct();
-    //     $this->load->database();
-    // }
 
-    
+    // FireBase Data Receiving Function
+    public function DataEntryModel($crfDB, $studyID, $user, $timestamp, $refresheddata)
+    {
+        $file = fopen("logs/" . $crfDB . "_logs.txt", "a");                     // For Logging Errors Incounterd By the Api..
+        $IdExistStat = false;                                                   // For Data Status if it's Being Inserted or Not..
 
-    public function DataEntryModel($crfDB, $studyID, $user, $timestamp, $refresheddata) {
+        // Custom Predefined Variables For Data Information
+        $newdataa['syncdate']   = date('Y-m-d');                                // Server Date
+        $newdataa['synctime']   = date('H:i:s');                                // Server Time
+        $newdataa['user']       = $user;                                        // from Data
+        $newdataa['timestamp']  = date('Y-m-d H:i:s', $timestamp->_seconds);    // from Data
+        $newdataa['studyID']    = $studyID;
 
-        $file = fopen("logs/".$crfDB."_logs.txt","a");
-        
-        //$data_plain['studyID'] = $this->input->get('studyID', TRUE);
-        //$refresheddata['studyID'] = $this->input->get('studyID', TRUE);
-
-        $newdataa['syncdate'] = date('Y-m-d');
-        $newdataa['synctime'] = date('H:i:s');
-        $newdataa['user'] = $user;
-        // $newdataa['timestamp'] = date('Y-m-d H:i:s',$timestamp->_seconds);
-        $newdataa['studyID'] = $studyID;
-        
         try {
-            // $db = app('db')->insert($crfDB, $newdataa);
             $db = DB::table($crfDB)->insert($newdataa);
-        } catch(\Exception $e) {
-           return $e;
+        } catch (\Exception $e) {
+            fwrite($file, response()->json($e->getMessage()) . "\n\n");         // Logging Error in file
+            $IdExistStat = true;                                                // Changing Id Status to Being Updated 
         }
-        
-        $studyID =  $newdataa['studyID'];
 
+        // Variables to be Synced Count
         $totalObjects = count((array)$refresheddata);
         $succObjects = 0;
-        
-        //if($db) {
-        foreach($refresheddata as $key => $value) {
+
+        foreach ($refresheddata as $key => $value) {
+            // After Id Insertion, Updating Data in Chunks
             try {
-                // if( DB::update("UPDATE `$crfDB` SET $key='$value' WHERE studyID='$studyID'")){
-                if(! DB::table($crfDB)->where('studyID', $studyID)->update([$key => $value])){
-                    fwrite($file,date("F j, Y, g:i a")." | ".$studyID." | ".DB::error()['message']." | Data:".$value.PHP_EOL);
-                    // fwrite($file,date("F j, Y, g:i a")." | ".$studyID." | ".app('db')->error()['message']."| Data:".$value.PHP_EOL);
+                if (!DB::table($crfDB)->where('studyID', $studyID)->update([$key => $value])) {
+                    fwrite($file, date("F j, Y, g:i a") . " | " . $studyID . " | " . DB::error()['message'] . " | Data:" . $value . PHP_EOL);
                 } else {
                     ++$succObjects;
                 }
-            } catch(\Exception $e) {
-                fwrite($file,$e->getMessage());
-                $msg['status'] = $e;
-                $msg['code'] = 409;
+            } catch (\Exception $e) {
+                fwrite($file, response()->json($e->getMessage()) . "\n\n");       // Inserting in Logs
+                $id_status = ($IdExistStat == false) ? 'Inserted' : 'Updated';    // Checking Id Status
+                fwrite($file, date("F j, Y, g:i a") . " | " . $id_status . " | " . $studyID . " | Data:" . $value . PHP_EOL);
             }
         }
-        $msg['status'] = "Success, ".$succObjects." of ".$totalObjects." object(s) synced...";
+
+        $msg['id-status'] = ($IdExistStat == false) ? 'Inserted' : 'Updated';
+        $msg['status'] = "Success, " . $succObjects . " of " . $totalObjects . " object(s) synced...";
         $msg['code'] = 200;
-        // } else {
-        //     $msg['status'] = "Failed, Record already exists...";
-        // 	$msg['code'] = 409;
-        // }
-        
+
         fclose($file);
         return $msg;
     }
 
-
-    public function RawDataToObject($crfDB = "default", $data_objects) {
-        
+    public function RawDataToObject($crfDB = "default", $data_objects)
+    {
+        // Parsing Data into Objects
         $refresheddata = null;
-        if($data_objects) {
-            foreach($data_objects as $key => $value) {
-                if(is_array($value)) {
-                    //$refresheddata[$key] = implode(',',$value);
+        if ($data_objects) {
+            foreach ($data_objects as $key => $value) {
+                // if Data is Json Array
+                if (is_array($value)) {
                     $refresheddata[$key] = json_encode($value);
                 } else {
                     $refresheddata[$key] = $value;
@@ -83,10 +71,6 @@ class DeviceApi_model extends Model
         } else {
             return $refresheddata = null;
         }
-
         return $refresheddata;
     }
-
-
-
 }

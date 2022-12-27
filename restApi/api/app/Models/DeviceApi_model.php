@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use PhpOption\None;
 
 class DeviceApi_model extends Model
 {
-
     // FireBase Data Receiving Function
     public function DataEntryModel($crfDB, $studyID, $user, $timestamp, $refresheddata)
     {
@@ -36,17 +36,18 @@ class DeviceApi_model extends Model
             // After Id Insertion, Updating Data in Chunks
             try {
                 if (!DB::table($crfDB)->where('studyID', $studyID)->update([$key => $value])) {
-                    fwrite($file, date("F j, Y, g:i a") . " | " . $studyID . " | " . DB::error()['message'] . " | Data:" . $value . PHP_EOL);
+                    fwrite($file, date("F j, Y, g:i a") . " | " . $studyID . " | Coloumn:" . $key . " | Data:" . $value . PHP_EOL);
                 } else {
                     ++$succObjects;
                 }
             } catch (\Exception $e) {
-                fwrite($file, response()->json($e->getMessage()) . "\n\n");       // Inserting in Logs
+                fwrite($file, $e->getMessage() . "\n\n");       // Inserting in Logs
                 $id_status = ($IdExistStat == false) ? 'Inserted' : 'Updated';    // Checking Id Status
-                fwrite($file, date("F j, Y, g:i a") . " | " . $id_status . " | " . $studyID . " | Data:" . $value . PHP_EOL);
+                fwrite($file, date("F j, Y, g:i a") . " | " . $id_status . " | " . $studyID . " | Coloumn:" . $key . " | Data:" . $value . PHP_EOL);
             }
         }
 
+        ($totalObjects != $succObjects) ? $msg['error'] = 'Check Error Logs': false ;
         $msg['id-status'] = ($IdExistStat == false) ? 'Inserted' : 'Updated';
         $msg['status'] = "Success, " . $succObjects . " of " . $totalObjects . " object(s) synced...";
         $msg['code'] = 200;

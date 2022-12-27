@@ -28,6 +28,18 @@ $router->group(['prefix' => '/DeviceApi/DataEntry'], function () use ($router) {
 
 });
 
+$router->group(['prefix' => '/DeviceApi/DataEntry2'], function () use ($router) {
+
+    $controller = 'DataApiController@DataEntry2';
+
+    $router->get('/{route:.*}/', $controller);
+    $router->post('/{route:.*}/', $controller);
+    $router->put('/{route:.*}/', $controller);
+    $router->patch('/{route:.*}/', $controller);
+    $router->delete('/{route:.*}/', $controller);
+
+});
+
 $router->get('/', function () use ($router) {
     return ($router->app->version());
 });

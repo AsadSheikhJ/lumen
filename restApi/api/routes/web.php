@@ -15,6 +15,7 @@
 
 
 $router->get('/DeviceApi',['uses' => 'DataApiController@index']);
+$router->post('/DeviceApi',['uses' => 'DataApiController@index']);
 
 $router->group(['prefix' => '/DeviceApi/DataEntry'], function () use ($router) {
 
@@ -30,7 +31,7 @@ $router->group(['prefix' => '/DeviceApi/DataEntry'], function () use ($router) {
 
 $router->group(['prefix' => '/DeviceApi/DataEntry2'], function () use ($router) {
 
-    $controller = 'DataApiController@DataEntry2';
+    $controller = 'DataApiController@DataEntry_v2';
 
     $router->get('/{route:.*}/', $controller);
     $router->post('/{route:.*}/', $controller);

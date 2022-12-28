@@ -22,7 +22,7 @@ class DataApiController extends BaseController
     public function __construct()
     {
         // $this->isSecure();
-        header('Content-Type: application/json');
+        header('Content-Type: application/json; charset=utf-8');
         header('Access-Control-Allow-Origin: *');
     }
 
@@ -93,7 +93,23 @@ class DataApiController extends BaseController
         return ($msg);
     }
 
-    public function DataEntry2(Request $request, $route)
+    // For Finding Table Primary Key and Checking if it matches
+    private function PrimaryKeyCheck( $table_name, $primaryKey = null){
+        try{
+            // Getting Primary Key for the table.
+            $primaryKeylocal = DB::select('SHOW KEYS FROM `'."$table_name".'` WHERE Key_name = "PRIMARY"');
+            $primaryKeylocal = $primaryKeylocal[0]->Column_name;
+            
+            //Checks if provided Key matches
+            return ( $primaryKey != $primaryKeylocal && !empty($primaryKey) ) ? 
+            'provided key doesn\'t match with actual key...' : $primaryKeylocal ;
+
+        } catch (\Exception $e){
+            return ('Unable to find id from table to insert with...');
+        }
+    }
+
+    public function DataEntry_v2(Request $request, $route)
     {
         // here $route will contain this value "whatever/comes/here/1"
         // if you want to know what method was posted, use $request->method()
@@ -125,43 +141,37 @@ class DataApiController extends BaseController
             return response()->json('the specified table doesn\'t exist..  
                 -- given table: ' . $crfDB);
         }
-        
-        // $columnTypes = [];
-        // $columns = Schema::getColumnListing($crfDB);
-        // foreach($columns as $column) {
-        //     //  echo $column;
-        //      echo Schema::getColumnType($crfDB, $column)."<br>";
-        // }
-        echo Schema::getKeyName($crfDB);
-        // echo Schema::getColumnType($crfDB, 'studyID');
-        //var_dump($columnTypes);
 
-        // try{
-        //     // Objectifing the Array to Insert in Table
-        //     $objectifiedData = $DeviceApi_model->RawDataToObject($crfDB, $data);
-        // }catch(\Exception $e){
-        //     $msg['error']   = $e->getMessage(); 
-        //     $msg['status']  = "Failed, Empty dataset...";
-        //     $msg['code']    = 409;
-        //     return ($msg);
-        // }
+        $primaryKey = $this->PrimaryKeyCheck($crfDB, request()->segment(4));
 
-        // // Inserting the objectified data
-        // if ($objectifiedData) {
-        //     try{
-        //         $msg = $DeviceApi_model->DataEntryModel($crfDB, $data->studyID, $data->user, $data->date, $objectifiedData);
-        //     } catch(\Exception $e){
-        //         fwrite($file,  $e->getMessage()."\n".response()->json($data) ."\n\n");
-        //         $msg['error']   = $e->getMessage();
-        //         $msg['status']  = "Failed";
-        //         $msg['code']    = 409;
-        //     }
-        // } else {
-        //     $msg['status'] = "Failed, Empty dataset...";
-        //     $msg['code'] = 409;
-        // }
+        try{
+            // Objectifing the Array to Insert in Table
+            $objectifiedData = $DeviceApi_model->RawDataToObject($crfDB, $data);
+            unset($objectifiedData[$primaryKey]);
+        }catch(\Exception $e){
+            $msg['error']   = $e->getMessage(); 
+            $msg['status']  = "Failed, Empty dataset...";
+            $msg['code']    = 409;
+            return ($msg);
+        }
 
-        // // http_response_code($msg['code']);
-        // return json_encode($msg);
+        // Inserting the objectified data
+        if ($objectifiedData) {
+            try{
+                // Function (Table Name(Required), DataID(Required), User Name, Data Timestamp, Objectified Data(Required), Primary Key(Required) )
+                $msg = $DeviceApi_model->DataEntryModel($crfDB, $data->$primaryKey, "Unknown" , null , $objectifiedData, $primaryKey);
+            } catch(\Exception $e){
+                fwrite($file,  $e->getMessage()."\n".response()->json($data) ."\n\n");
+                $msg['error']   = $e->getMessage();
+                $msg['status']  = "Failed";
+                $msg['code']    = 409;
+            }
+        } else {
+            $msg['status'] = "Failed, Empty dataset...";
+            $msg['code'] = 409;
+        }
+
+        // http_response_code($msg['code']);
+        return ($msg);
     }
 }

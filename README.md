@@ -1,0 +1,1 @@
+An Api service that sends data to mysql from json format to any table that is parse along the url and it also automatically picks picks the primary Id from the data by getting the info from the table schema and insert data iteratively so if any data is missed it will log it in the logs about it and continue on for further process.
